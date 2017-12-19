@@ -28,10 +28,11 @@
     const BITCOIN = 'bitcoin'
     const GAIN = 'gain'
     const SELL = 'sell'
+    const PERCENTAGES = [-0.2, -0.15, -0.1, -0.05, -0.03, -0.02, -0.01, -0.002, 0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, .15, .2];
 
     let feePercent = .001
     let unit = SATOSHI
-    let mode = SELL
+    let mode = GAIN
 
     function getFee(salePrice, numShares, feePercent) {
       return salePrice * numShares * feePercent;
@@ -47,29 +48,36 @@
 
       const gain = salePrice * numShares - getFee(salePrice, numShares, feePercent);
 
-      const percentages = [-0.1, -0.05, -0.03, -0.02, -0.01, -0.002, 0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1];
-
-      return percentages.map(ROI => {
+      return PERCENTAGES.map(ROI => {
         const cost = gain / (ROI + 1);
         const buyPrice = cost / (numShares * (1 + feePercent));
-        let word;
-
-        if (ROI >= 0) {
-          word = 'gain';
-        } else {
-          word = 'loss';
-        }
 
         return {
-          buyPrice,
+          price: buyPrice,
           ROI
         }
       });
     }
 
-    function updateSaleCalculatorResults(e) {
-      const saleCalculatorResults = calculateSell(e)
-      const resultsHtml = saleCalculatorResults.map(result => {
+    function calculateGain(e) {
+      const numShares = 1;
+      const buyPrice = parseFloat(e.target.value) || 0;
+      const cost = buyPrice * numShares + getFee(buyPrice, numShares, feePercent);
+
+      return PERCENTAGES.map(ROI => {
+        const gain = cost * (ROI + 1);
+        const salePrice = gain / (numShares * (1 - feePercent));
+
+        return {
+          price: salePrice,
+          ROI
+        }
+      });
+    }
+
+    function updateCalculatorResults(e) {
+      const calculatorResults = mode === SELL ? calculateSell(e) : calculateGain(e)
+      const resultsHtml = calculatorResults.map(result => {
         let className = ''
 
         if (result.ROI >= 0) {
@@ -78,9 +86,9 @@
           className = 'loss'
         }
         const prettyROI = Math.abs(result.ROI) * 100
-        const prettyBuyPrice = unit === BITCOIN ? result.buyPrice.toString().slice(0, 10) : Math.round(result.buyPrice)
+        const prettyPrice = unit === BITCOIN ? result.price.toString().slice(0, 10) : Math.round(result.price)
 
-        return `<tr><td class=${className}>${prettyROI}%</td><td>${prettyBuyPrice}</td></tr>`
+        return `<tr><td class=${className}>${prettyROI}%</td><td>${prettyPrice}</td></tr>`
       }).join('')
 
       const innerHTML = `<table>${resultsHtml}</table>`
@@ -108,6 +116,13 @@
     <h1 class="header-title">Crypto ROI Calculator</h1>
   </div>
 
+  <form class="mode-form">
+    <label>Gain</label>
+    <input id="gain-mode" name="mode" type="radio" checked />
+    <label>Sell</label>
+    <input id="sell-mode" name="mode" type="radio" />
+  </form>
+
   <form class="unit-form">
     <label>Bitcoin</label>
     <input id="bitcoin" name="unit" type="radio" />
@@ -115,18 +130,11 @@
     <input id="satoshi" name="unit" type="radio" checked />
   </form>
 
-  <form class="mode-form">
-    <label>Gain</label>
-    <input id="gain-mode" name="mode" type="radio" />
-    <label>Sell</label>
-    <input id="sell-mode" name="mode" type="radio" checked />
-  </form>
-
   <div class="container">
     <div class="calculator-container">
       <form id="calculator">
         <div>
-          <label>Sale price</label>
+          <label>Price</label>
           <input id="calculator-input" />
         </div>
         <div>
@@ -143,30 +151,46 @@
 
 <script>
     function initializeMode() {
-      if (mode === SELL) {
-        document.getElementById('calculator-fee-input').value = feePercent * 100
-        document.getElementById('calculator-input').onkeyup = updateSaleCalculatorResults
-        document.getElementById('calculator-fee-input').onkeyup = setFee
+      document.getElementById('calculator-fee-input').value = feePercent * 100
+      document.getElementById('calculator-input').onkeyup = updateCalculatorResults
+      document.getElementById('calculator-fee-input').onkeyup = setFee
 
-        const unitNodes = document.querySelectorAll('.unit-form input[type=radio]')
+      const unitNodes = document.querySelectorAll('.unit-form input[type=radio]')
+      const modeNodes = document.querySelectorAll('.mode-form input[type=radio]')
 
-        unitNodes.forEach(unitNode => {
-          unitNode.onclick = function (e) {
-            if (unitNode.id === BITCOIN) {
-              unit = BITCOIN
-            } else {
-              unit = SATOSHI
-            }
-
-            const value = updateCalculatorInput()
-            updateSaleCalculatorResults({
-              target: {
-                value
-              }
-            })
+      unitNodes.forEach(unitNode => {
+        unitNode.onclick = function (e) {
+          if (unitNode.id === BITCOIN) {
+            unit = BITCOIN
+          } else {
+            unit = SATOSHI
           }
-        })
-      }
+
+          const value = updateCalculatorInput()
+          updateCalculatorResults({
+            target: {
+              value
+            }
+          })
+        }
+      })
+
+      modeNodes.forEach(modeNode => {
+        modeNode.onclick = function (e) {
+          if (modeNode.id === GAIN) {
+            mode = GAIN
+          } else {
+            mode = SELL
+          }
+
+          const value = document.getElementById('calculator-input').value
+          updateCalculatorResults({
+            target: {
+              value
+            }
+          })
+        }
+      })
     }
 
     initializeMode()

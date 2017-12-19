@@ -28,7 +28,7 @@
     const BITCOIN = 'bitcoin'
 
     let feePercent = .001
-    let unit = BITCOIN
+    let unit = SATOSHI
 
     function getFee(salePrice, numShares, feePercent) {
       return salePrice * numShares * feePercent;
@@ -40,7 +40,7 @@
 
     function calculateSell(e) {
       const numShares = 1;
-      const salePrice = parseFloat(event.target.value);
+      const salePrice = parseFloat(e.target.value);
 
       const gain = salePrice * numShares - getFee(salePrice, numShares, feePercent);
 
@@ -95,6 +95,7 @@
 
       document.getElementById('sell-calculator-input').value = value
 
+      return value
     }
   </script>
 </head>
@@ -144,8 +145,12 @@
           unit = SATOSHI
         }
 
-        updateSaleCalculatorResults()
-        updateCalculatorInput()
+        const value = updateCalculatorInput()
+        updateSaleCalculatorResults({
+          target: {
+            value
+          }
+        })
       }
     })
 </script>

@@ -26,9 +26,12 @@
   <script>
     const SATOSHI = 'satoshi'
     const BITCOIN = 'bitcoin'
+    const GAIN = 'gain'
+    const SELL = 'sell'
 
     let feePercent = .001
     let unit = SATOSHI
+    let mode = SELL
 
     function getFee(salePrice, numShares, feePercent) {
       return salePrice * numShares * feePercent;
@@ -40,7 +43,7 @@
 
     function calculateSell(e) {
       const numShares = 1;
-      const salePrice = parseFloat(e.target.value);
+      const salePrice = parseFloat(e.target.value) || 0;
 
       const gain = salePrice * numShares - getFee(salePrice, numShares, feePercent);
 
@@ -82,18 +85,18 @@
 
       const innerHTML = `<table>${resultsHtml}</table>`
 
-      document.querySelector('.sell-calculator-results-container').innerHTML = innerHTML
+      document.querySelector('.calculator-results-container').innerHTML = innerHTML
     }
 
     function updateCalculatorInput() {
-      let value = document.getElementById('sell-calculator-input').value
+      let value = document.getElementById('calculator-input').value
       if (unit === BITCOIN) {
         value *= .00000001
       } else {
         value /= .00000001
       }
 
-      document.getElementById('sell-calculator-input').value = value
+      document.getElementById('calculator-input').value = value
 
       return value
     }
@@ -104,55 +107,69 @@
   <div class="header">
     <h1 class="header-title">Crypto ROI Calculator</h1>
   </div>
-  <div class="calculator-container">
-    <div>
-      <label>Bitcoin</label>
-      <input id="bitcoin" name="unit" type="radio" />
-      <label>Satoshis</label>
-      <input id="satoshi" name="unit" type="radio" checked />
-    </div>
 
-    <div class="sell-calculator-container">
-      <form id="sell-calculator">
+  <form class="unit-form">
+    <label>Bitcoin</label>
+    <input id="bitcoin" name="unit" type="radio" />
+    <label>Satoshis</label>
+    <input id="satoshi" name="unit" type="radio" checked />
+  </form>
+
+  <form class="mode-form">
+    <label>Gain</label>
+    <input id="gain-mode" name="mode" type="radio" />
+    <label>Sell</label>
+    <input id="sell-mode" name="mode" type="radio" checked />
+  </form>
+
+  <div class="container">
+    <div class="calculator-container">
+      <form id="calculator">
         <div>
           <label>Sale price</label>
-          <input id="sell-calculator-input" />
+          <input id="calculator-input" />
         </div>
         <div>
           <label>Fee Percentage</label>
-          <input id="sell-calculator-fee-input" />
+          <input id="calculator-fee-input" />
         </div>
       </form>
 
-      <div class="sell-calculator-results-container">
+      <div class="calculator-results-container">
       </div>
     </div>
   </div>
 </body>
 
 <script>
-    document.getElementById('sell-calculator-fee-input').value = feePercent * 100
-    document.getElementById('sell-calculator-input').onkeyup = updateSaleCalculatorResults
-    document.getElementById('sell-calculator-fee-input').onkeyup = setFee
+    function initializeMode() {
+      if (mode === SELL) {
+        document.getElementById('calculator-fee-input').value = feePercent * 100
+        document.getElementById('calculator-input').onkeyup = updateSaleCalculatorResults
+        document.getElementById('calculator-fee-input').onkeyup = setFee
 
-    const unitNodes = document.querySelectorAll('.calculator-container input[type=radio]')
+        const unitNodes = document.querySelectorAll('.unit-form input[type=radio]')
 
-    unitNodes.forEach(unitNode => {
-      unitNode.onclick = function (e) {
-        if (unitNode.id === BITCOIN) {
-          unit = BITCOIN
-        } else {
-          unit = SATOSHI
-        }
+        unitNodes.forEach(unitNode => {
+          unitNode.onclick = function (e) {
+            if (unitNode.id === BITCOIN) {
+              unit = BITCOIN
+            } else {
+              unit = SATOSHI
+            }
 
-        const value = updateCalculatorInput()
-        updateSaleCalculatorResults({
-          target: {
-            value
+            const value = updateCalculatorInput()
+            updateSaleCalculatorResults({
+              target: {
+                value
+              }
+            })
           }
         })
       }
-    })
+    }
+
+    initializeMode()
 </script>
 
 </html>

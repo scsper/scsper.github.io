@@ -1,0 +1,153 @@
+<html>
+
+<head>
+  <style>
+    .header {
+      height: 50px;
+      background-color: navy;
+      width: 100%;
+    }
+
+    .header-title {
+      color: white;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .gain {
+      color: green;
+    }
+
+    .loss {
+      color: red;
+    }
+  </style>
+
+  <script>
+    const SATOSHI = 'satoshi'
+    const BITCOIN = 'bitcoin'
+
+    let feePercent = .001
+    let unit = BITCOIN
+
+    function getFee(salePrice, numShares, feePercent) {
+      return salePrice * numShares * feePercent;
+    }
+
+    function setFee(fee) {
+      feePercent = parseFloat(fee, 10) / 100
+    }
+
+    function calculateSell(e) {
+      const numShares = 1;
+      const salePrice = parseFloat(event.target.value);
+
+      const gain = salePrice * numShares - getFee(salePrice, numShares, feePercent);
+
+      const percentages = [-0.1, -0.05, -0.03, -0.02, -0.01, -0.002, 0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1];
+
+      return percentages.map(ROI => {
+        const cost = gain / (ROI + 1);
+        const buyPrice = cost / (numShares * (1 + feePercent));
+        let word;
+
+        if (ROI >= 0) {
+          word = 'gain';
+        } else {
+          word = 'loss';
+        }
+
+        return {
+          buyPrice,
+          ROI
+        }
+      });
+    }
+
+    function updateSaleCalculatorResults(e) {
+      const saleCalculatorResults = calculateSell(e)
+      const resultsHtml = saleCalculatorResults.map(result => {
+        let className = ''
+
+        if (result.ROI >= 0) {
+          className = 'gain'
+        } else {
+          className = 'loss'
+        }
+        const prettyROI = Math.abs(result.ROI) * 100
+        const prettyBuyPrice = unit === BITCOIN ? result.buyPrice.toString().slice(0, 10) : Math.round(result.buyPrice)
+
+        return `<tr><td class=${className}>${prettyROI}%</td><td>${prettyBuyPrice}</td></tr>`
+      }).join('')
+
+      const innerHTML = `<table>${resultsHtml}</table>`
+
+      document.querySelector('.sell-calculator-results-container').innerHTML = innerHTML
+    }
+
+    function updateCalculatorInput() {
+      let value = document.getElementById('sell-calculator-input').value
+      if (unit === BITCOIN) {
+        value *= .00000001
+      } else {
+        value /= .00000001
+      }
+
+      document.getElementById('sell-calculator-input').value = value
+
+    }
+  </script>
+</head>
+
+<body>
+  <div class="header">
+    <h1 class="header-title">Crypto ROI Calculator</h1>
+  </div>
+  <div class="calculator-container">
+    <div>
+      <label>Bitcoin</label>
+      <input id="bitcoin" name="unit" type="radio" />
+      <label>Satoshis</label>
+      <input id="satoshi" name="unit" type="radio" checked />
+    </div>
+
+    <div class="sell-calculator-container">
+      <form id="sell-calculator">
+        <div>
+          <label>Sale price</label>
+          <input id="sell-calculator-input" />
+        </div>
+        <div>
+          <label>Fee Percentage</label>
+          <input id="sell-calculator-fee-input" />
+        </div>
+      </form>
+
+      <div class="sell-calculator-results-container">
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+    document.getElementById('sell-calculator-fee-input').value = feePercent * 100
+    document.getElementById('sell-calculator-input').onkeyup = updateSaleCalculatorResults
+    document.getElementById('sell-calculator-fee-input').onkeyup = setFee
+
+    const unitNodes = document.querySelectorAll('.calculator-container input[type=radio]')
+
+    unitNodes.forEach(unitNode => {
+      unitNode.onclick = function (e) {
+        if (unitNode.id === BITCOIN) {
+          unit = BITCOIN
+        } else {
+          unit = SATOSHI
+        }
+
+        updateSaleCalculatorResults()
+        updateCalculatorInput()
+      }
+    })
+</script>
+
+</html>

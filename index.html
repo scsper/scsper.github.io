@@ -1,26 +1,59 @@
 <html>
 
 <head>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto" rel="stylesheet">
   <style>
+    body {
+        background: #0f2027;
+        background-image:url("background.jpg");
+        background-repeat: no-repeat;
+        background-size: cover;
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    td{
+        padding: 4px 8px;
+    }
+
+    table{
+        margin: 0 auto;
+    }
+
     .header {
       height: 50px;
-      background-color: navy;
       width: 100%;
+      text-align: center;
+      margin: 100px 0 32px;
     }
 
     .header-title {
-      color: white;
+      color: #e8e4e4;
       margin: 0;
-      font-family: sans-serif;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .main-content{
+        display:flex;
+        background: #ffffffe6;
+        margin: 0 25%;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px;
+        border-radius: 4px;
     }
 
     .gain {
-      color: green;
+      color: #0a7d0a;
     }
 
     .loss {
-      color: red;
+      color: #ef4444;
     }
+
+    .price-label, .fee-label {
+        display: inline-block;
+    }
+
   </style>
 
   <script>
@@ -88,7 +121,7 @@
         const prettyROI = Math.abs(result.ROI) * 100
         const prettyPrice = unit === BITCOIN ? result.price.toString().slice(0, 10) : Math.round(result.price)
 
-        return `<tr><td class=${className}>${prettyROI}%</td><td>${prettyPrice}</td></tr>`
+        return `<tr class=${className}><td >${prettyROI}%</td><td>${prettyPrice}</td></tr>`
       }).join('')
 
       const innerHTML = `<table>${resultsHtml}</table>`
@@ -109,6 +142,7 @@
       return value
     }
   </script>
+
 </head>
 
 <body>
@@ -116,37 +150,39 @@
     <h1 class="header-title">Crypto ROI Calculator</h1>
   </div>
 
-  <form class="mode-form">
-    <label>Gain</label>
-    <input id="gain-mode" name="mode" type="radio" checked />
-    <label>Sell</label>
-    <input id="sell-mode" name="mode" type="radio" />
-  </form>
-
-  <form class="unit-form">
-    <label>Bitcoin</label>
-    <input id="bitcoin" name="unit" type="radio" />
-    <label>Satoshis</label>
-    <input id="satoshi" name="unit" type="radio" checked />
-  </form>
-
-  <div class="container">
-    <div class="calculator-container">
-      <form id="calculator">
-        <div>
-          <label>Price</label>
-          <input id="calculator-input" />
-        </div>
-        <div>
-          <label>Fee Percentage</label>
-          <input id="calculator-fee-input" />
-        </div>
+  <div class="main-content"/>
+      <form class="mode-form">
+        <label>Gain</label>
+        <input id="gain-mode" name="mode" type="radio" checked />
+        <label>Sell</label>
+        <input id="sell-mode" name="mode" type="radio" />
       </form>
 
-      <div class="calculator-results-container">
+      <form class="unit-form">
+        <label>Bitcoin</label>
+        <input id="bitcoin" name="unit" type="radio" />
+        <label>Satoshis</label>
+        <input id="satoshi" name="unit" type="radio" checked />
+      </form>
+
+      <div class="container">
+        <div class="calculator-container">
+          <form id="calculator">
+            <div class="price-label">
+              <label>Price</label>
+              <input id="calculator-input" />
+            </div>
+            <div class="fee-label">
+              <label>Fee Percentage</label>
+              <input id="calculator-fee-input" />
+            </div>
+          </form>
+
+          <div class="calculator-results-container">
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 </body>
 
 <script>
